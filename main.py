@@ -35,7 +35,7 @@ def mainloop():
     streamids = current_streamids
     
 def announce_user(streaminfo):
-    announce = "{} has gone live! (Playing {})".format(streaminfo['url'], streaminfo['game']))
+    announce = "{} has gone live! (Playing {})".format(streaminfo['url'], streaminfo['game'])
 
     print(announce)
     
