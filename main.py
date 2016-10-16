@@ -25,14 +25,18 @@ def main():
 def mainloop():
     print("running main loop")
     global streamids
+    update_flag = False
+
     print("Current list of stream ids: {}".format(streamids))
     current_streamids = []
     for user in clientinfo['usernames']:
         streams[user] = get_online_status(user)
-        if streams[user]['online'] and streams[user]['id'] not in streamids:
+        if streams[user]['online'] and streams[user]['id'] not in streamids
             announce_user(streams[user])
             current_streamids.append(streams[user]['id'])
-    streamids = current_streamids
+            update_flag = True
+    if update_flag:
+        streamids = current_streamids
     
 def announce_user(streaminfo):
     announce = "{} has gone live! (Playing {})".format(streaminfo['url'], streaminfo['game'])
