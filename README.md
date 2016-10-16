@@ -18,6 +18,8 @@ Run main.py, preferably within a screen or tmux instance.  It will poll your
 chosen list of users every 60 seconds looking for changes. To exit simply hit
 ctrl-C.
 
-# Author James Curbo <james@curbo.org>
+# Author 
+
+James Curbo <james@curbo.org>
 
 
