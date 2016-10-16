@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+
+bin/
+include/
+lib/
+lib64
+pip-selfcheck.json
+pyvenv.cfg
+share/
+
+bot.ini

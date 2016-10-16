@@ -1,0 +1,12 @@
+[client]
+# Twitch API base URL
+baseurl = https://api.twitch.tv/kraken/streams/
+# Twitch client id you need to obtain
+# see https://blog.twitch.tv/client-id-required-for-kraken-api-calls-afbb8e95f843#.defkd46le
+client-id = 
+# Comma separated list of usernames to follow
+usernames = magfest, LAGTVMaximusBlack
+# Slack webhook to use - you'll need to create an Incoming Webhook for your
+# Slack instance
+webhook = 
+
