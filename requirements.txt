@@ -1,2 +1,2 @@
-pkg-resources==0.0.0
-requests==2.11.1
+configparser==3.5.0
+requests==2.12.5
