@@ -3,18 +3,20 @@ import configparser
 import time
 
 clientinfo = {}
-streams = {}
-streamids = []
+streams_current = {}
 
 def main():
     configfile = 'bot.ini'
     config = configparser.ConfigParser()
     config.read(configfile)
 
+    # TODO: if we want to do more than access stream objects, baseurl should
+    # be pointed at just api.twitch.tv and another variable added to control
+    # which part of the API to go to (streams, channels, users, etc)
     clientinfo['baseurl'] = config['client']['baseurl']
     clientinfo['client-id'] = config['client']['client-id']
     clientinfo['usernames'] = [e.strip() for e in config['client']['usernames'].split(',')]
-    clientinfo['webhook'] = config['client']['webhook']
+    clientinfo['slack_webhook'] = config['client']['slack_webhook']
 
     starttime = time.time()
 
@@ -24,46 +26,28 @@ def main():
 
 def mainloop():
     print("running main loop")
-    global streamids
-    global streams
-    update_flag = False
+    global streams_current
 
-    streams_current = {}
+    print("Current list of stream ids: {}".format(list(streams_current.keys())))
 
-    print("Current list of stream ids: {}".format(streamids))
-
-#     for user in clientinfo['usernames']:
-        # current_streams[user] = get_online_status(user)
-        # if streams[user]['online'] and streams[user]['id'] not in streamids
-            # announce_user(streams[user])
-            # current_streamids.append(streams[user]['id'])
-            # update_flag = True
-    # if update_flag:
-        # streamids = current_streamids
-
-    ########
-
-    streams_current = get_streams(clientinfo['usernames'])
-
-    streamids_diff = compare_streams(streams, streams_current)
-
-    # for streamid in streamids_diff:
+    # Get the current status of all users
+    streams_new = get_streams()
+    # Compare against the previous iteration of the loop
+    # If this is the first time, streams_current will be empty so everything will be
+    # new
+    streamids_status = compare_streams(streams_current, streams_new)
+    # Announce changes
+    announce_streams(streamids_status, streams_current, streams_new)
+    # copy new streams list to main list for next loop
+    streams_current = streams_new
     
-def announce_stream(stream):
-    announce = "{} has gone live! (Playing {})".format(stream['url'], stream['game'])
-
-    print(announce)
-    
-    payload = {'text' : announce}
-
-    p = requests.post(clientinfo['webhook'], json=payload)
-
-def get_streams(usernames):
+def get_streams():
     streams = {}
     headers = {'Client-ID': clientinfo['client-id']}
 
-    for user in usernames:
+    for user in clientinfo['usernames']:
         print("Checking {}".format(user))
+        # note: the API url is something like: api.twitch.tv/kraken/streams/hannibal127
         r = requests.get(clientinfo['baseurl'] + user, headers=headers)
         res = r.json()
 
@@ -75,43 +59,60 @@ def get_streams(usernames):
             streams[stream_id]['username'] = user
             streams[stream_id]['game'] = res['stream']['game']
             streams[stream_id]['url']  = res['stream']['channel']['url']
+            streams[stream_id]['status'] = res['stream']['channel']['status']
+            streams[stream_id]['preview_l'] = res['stream']['preview']['large']
             
     return streams
 
-def compare_streams(streams_prev, streams_current):
+def compare_streams(streams_current, streams_new):
     streamids_changed = {}
     streamids_changed['offline'] = []
     streamids_changed['online'] = []
 
-    for key in streams_prev:
-        if key not in streams_current:
-            streamids_changed['offline'].append(key)
+    print("Current streams: {}".format(list(streams_current.keys())))
+    print("New streams:     {}".format(list(streams_new.keys())))
 
     for key in streams_current:
-        if key not in streams_prev:
+        if key not in streams_new:
+            streamids_changed['offline'].append(key)
+
+    for key in streams_new:
+        if key not in streams_current:
             streamids_changed['online'].append(key)
     
+    print("Streams that just went offline: {}".format(streamids_changed['offline']))
+    print("Streams that just went online:  {}".format(streamids_changed['online']))
+
     return streamids_changed
 
-def announce_streams(streamids_changed, streams):
-    announce_offline = "{} stopped streaming. (Was playing {})"
-    announce_online  = "{} has gone live! (Playing {})"
-    announce_list = []
-
-    # Streams that have gone offline since last check
-    for streamid in streamids_changed['offline']:
-        ann = announce_offline.format(streams[streamid]['url'], streams[streamid]['game'])
-        announce_list.append(ann)
-
-    # Streams that are new since last check
+def announce_streams(streamids_changed, streams_current, streams_new):
     for streamid in streamids_changed['online']:
-        ann = announce_online.format(streams[streamid]['url'], streams[streamid]['game'])
-        announce_list.append(ann)
+        ann_text = "{} has gone live on Twitch! (Playing {})".format(streams_new[streamid]['username'], streams_new[streamid]['game'])
+        payload = {
+                'text': ann_text,
+                'attachments': [
+                    {
+                        'color': '#00FF00',
+                        'text': streams_new[streamid]['url'],
+                        'image_url': streams_new[streamid]['preview_l']
+                    }
+                ]
+        }
 
-    for item in announce_list:
-        print(item)
-        payload = {'text': item}
-        p = requests.post(clientinfo['webhook'], json=payload)
+        p = requests.post(clientinfo['slack_webhook'], json=payload2)
+
+    for streamid in streamids_changed['offline']:
+        ann_text = "{} stopped streaming on Twitch. (Was playing {})".format(streams_current[streamid]['username'], streams_current[streamid]['game'])
+        payload = {
+                'text': ann_text,
+                'attachments': [
+                    {
+                        'color': '#FF0000',
+                        'text': streams_new[streamid]['url']
+                    }
+                ]
+        }
+        p = requests.post(clientinfo['slack_webhook'], json=payload)
 
 if __name__ == "__main__":
     main()
