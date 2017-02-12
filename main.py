@@ -88,13 +88,18 @@ def compare_streams(streams_current, streams_new):
 
 def announce_streams(streamids_changed, streams_current, streams_new):
     for streamid in streamids_changed['online']:
-        ann_text = "{} has gone live on Twitch! (Playing {})".format(streams_new[streamid]['username'], streams_new[streamid]['game'])
+        ann_text = "{} has gone live on Twitch!".format(streams_new[streamid]['username'])
+        att_text = "{}\nStatus: {}\nGame: {}".format(
+                streams_new[streamid]['url'],
+                streams_new[streamid]['status'],
+                streams_new[streamid]['game'])
+
         payload = {
                 'text': ann_text,
                 'attachments': [
                     {
                         'color': '#00FF00',
-                        'text': streams_new[streamid]['url'],
+                        'text': att_text,
                         'image_url': streams_new[streamid]['preview_l']
                     }
                 ]
@@ -104,13 +109,18 @@ def announce_streams(streamids_changed, streams_current, streams_new):
         q = requests.post(clientinfo['discord_webhook'], json=payload)
 
     for streamid in streamids_changed['offline']:
-        ann_text = "{} stopped streaming on Twitch. (Was playing {})".format(streams_current[streamid]['username'], streams_current[streamid]['game'])
+        ann_text = "{} stopped streaming on Twitch.".format(streams_current[streamid]['username'])
+        att_text = "{}\nStatus: {}\nGame: {}".format(
+                streams_current[streamid]['url'],
+                streams_current[streamid]['status'],
+                streams_current[streamid]['game'])
+
         payload = {
                 'text': ann_text,
                 'attachments': [
                     {
                         'color': '#FF0000',
-                        'text': streams_new[streamid]['url']
+                        'text': att_text
                     }
                 ]
         }
