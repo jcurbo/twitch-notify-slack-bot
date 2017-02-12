@@ -9,4 +9,6 @@ usernames = magfest, LAGTVMaximusBlack
 # Slack webhook to use - you'll need to create an Incoming Webhook for your
 # Slack instance
 slack_webhook = 
-
+# Discord webhook to use - make sure you append /slack - see Discord webhook
+# docs for more info
+discord_webhook = 

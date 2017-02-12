@@ -17,6 +17,7 @@ def main():
     clientinfo['client-id'] = config['client']['client-id']
     clientinfo['usernames'] = [e.strip() for e in config['client']['usernames'].split(',')]
     clientinfo['slack_webhook'] = config['client']['slack_webhook']
+    clientinfo['discord_webhook'] = config['client']['discord_webhook']
 
     starttime = time.time()
 
@@ -99,7 +100,8 @@ def announce_streams(streamids_changed, streams_current, streams_new):
                 ]
         }
 
-        p = requests.post(clientinfo['slack_webhook'], json=payload2)
+        p = requests.post(clientinfo['slack_webhook'], json=payload)
+        q = requests.post(clientinfo['discord_webhook'], json=payload)
 
     for streamid in streamids_changed['offline']:
         ann_text = "{} stopped streaming on Twitch. (Was playing {})".format(streams_current[streamid]['username'], streams_current[streamid]['game'])
@@ -113,6 +115,7 @@ def announce_streams(streamids_changed, streams_current, streams_new):
                 ]
         }
         p = requests.post(clientinfo['slack_webhook'], json=payload)
+        q = requests.post(clientinfo['discord_webhook'], json=payload)
 
 if __name__ == "__main__":
     main()
