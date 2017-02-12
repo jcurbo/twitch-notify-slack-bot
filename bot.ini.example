@@ -8,5 +8,5 @@ client-id =
 usernames = magfest, LAGTVMaximusBlack
 # Slack webhook to use - you'll need to create an Incoming Webhook for your
 # Slack instance
-webhook = 
+slack_webhook = 
 
